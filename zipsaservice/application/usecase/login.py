@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 from zipsaservice.application.authenticator import Authenticator
 from zipsaservice.application.repository.account_repository import AccountRepository
-from zipsaservice.domain.exception.exceptions import NoSuchAccountException, WrongPasswordException
+from zipsaservice.application.utils.exceptions import NoSuchAccountException, WrongPasswordException
 from zipsaservice.domain.model.user import User
 
 

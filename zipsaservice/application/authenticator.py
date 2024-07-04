@@ -14,20 +14,20 @@ class Authenticator:
         hash_algorithm: str,
         token_expire_min: int
     ) -> None:
-        self._pwd_context = CryptContext(schemes=[crypt_algorithm], deprecated="auto")
-        self._hash_algorithm = hash_algorithm
-        self._token_expire_timedelta = timedelta(token_expire_min)
+        self.__pwd_context = CryptContext(schemes=[crypt_algorithm], deprecated="auto")
+        self.__hash_algorithm = hash_algorithm
+        self.__token_expire_timedelta = timedelta(token_expire_min)
         self.__secret_key = secrets.token_urlsafe(32)
         
     def verify_password(self, plain_password: str, hashed_password: str) -> bool:
-        return self._pwd_context.verify(plain_password, hashed_password)
+        return self.__pwd_context.verify(plain_password, hashed_password)
     
     def get_hashed(self, plain_password: str) -> str:
-        return self._pwd_context.hash(plain_password)
+        return self.__pwd_context.hash(plain_password)
     
     def create_access_token(self, subject: str | Any) -> str:
-        expire = datetime.now(timezone.utc) + self._token_expire_timedelta
+        expire = datetime.now(timezone.utc) + self.__token_expire_timedelta
         to_encode = {"exp": expire, "sub": str(subject)}
-        encoded_jwt = jwt.encode(to_encode, self.__secret_key, algorithm=self._hash_algorithm)
+        encoded_jwt = jwt.encode(to_encode, self.__secret_key, algorithm=self.__hash_algorithm)
         return encoded_jwt
     
