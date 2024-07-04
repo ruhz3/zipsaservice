@@ -1,4 +1,7 @@
 import click
+from zipsaservice.port.controller.rest.fastapi.zipsa_api import ZipsaAPI
 
-def run():
+
+async def run():
     pass
+
