@@ -1,8 +1,7 @@
 from pydantic import BaseModel
 from zipsaservice.application.authenticator import Authenticator
-from zipsaservice.application.repository.account_repository import AccountRepository
+from zipsaservice.application.repository.account_repository import Repository
 from zipsaservice.application.utils.exceptions import NoSuchAccountException, WrongPasswordException
-from zipsaservice.domain.model.user import User
 
 
 class LoginInputDto(BaseModel):
@@ -13,14 +12,14 @@ class LoginInputDto(BaseModel):
 class LoginUseCase:
     def __init__(
         self, 
-        account_repository: AccountRepository,
+        repository: Repository,
         authenticator: Authenticator
     ) -> None:
-        self._account_repository = account_repository
+        self._repository = repository
         self._authenticator = authenticator
         
     async def execute(self, input: LoginInputDto) -> str:
-        account = await self._account_repository.get_account(input.id)
+        account = await self._repository.get_account(input.id)
         if not account:
             raise NoSuchAccountException
         if not self._authenticator.verify_password(input.password, account.password):
