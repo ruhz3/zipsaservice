@@ -1,31 +1,36 @@
 from contextlib import asynccontextmanager
 from typing import Any
-from fastapi import FastAPI, APIRouter
+from fastapi import FastAPI
 import uvicorn
-from zipsaservice.port.adapter.persistence.async_pg_account_repository import AsyncPgAccountRepository
-from zipsaservice.port.controller.rest.fastapi.routes import login, accounts
-
+from zipsaservice.application.usecase.use_cases import UseCases
+from zipsaservice.application.usecase.login import LoginInputDto
 
 
 class ZipsaAPI:
-    server: FastAPI | Any = None
 
-    def __init__(self, host: str, port: int):
-        self._server = FastAPI()
-        self._add_routes()
+    def __init__(self, host: str, port: int, use_cases: UseCases):
+        self.server = FastAPI()
+        self._use_cases = use_cases
         self._host = host
         self._port = port
     
-    def _add_routes(self) -> None:
-        if self._server:
-            router = APIRouter()
-            router.include_router(login.router, tags=["login"])
-            router.include_router(accounts.router, prefix="accounts", tags=["accounts"])
-            self._server.include_router(router)
-
     @asynccontextmanager
     async def lifespan(self):
         yield
     
     def serve(self):
         uvicorn.run(self._server, host=self._host, port=self._port)
+    
+    @property
+    def use_cases(self):
+        return self._use_cases
+
+
+app = ZipsaAPI()
+api = ZipsaAPI().server
+
+
+@api.post("/login/access-token")
+async def login_access_token(input: LoginInputDto):
+    return app.use_cases.login.execute(input)
+
