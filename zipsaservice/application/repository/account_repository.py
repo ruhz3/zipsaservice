@@ -1,5 +1,5 @@
 from abc import ABCMeta, abstractmethod
-from domain.model.account import Account
+from zipsaservice.domain.model.account import Account
 
 
 class AccountRepository(metaclass=ABCMeta):

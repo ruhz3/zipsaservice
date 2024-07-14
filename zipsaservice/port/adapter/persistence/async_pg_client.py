@@ -14,7 +14,6 @@ class AsyncPgClient:
         pool_min_size: int,
         pool_max_size: int
     ) -> None:
-        
         self._host = host
         self._port = port
         self._db_name = db_name
