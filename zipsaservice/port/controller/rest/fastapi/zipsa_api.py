@@ -1,36 +1,43 @@
 from contextlib import asynccontextmanager
 from typing import Any
-from fastapi import FastAPI
+from fastapi import FastAPI, APIRouter
 import uvicorn
 from zipsaservice.application.usecase.use_cases import UseCases
 from zipsaservice.application.usecase.login import LoginInputDto
 
 
+def route(method: str, path: str):
+    def decorator(func):
+        func._route_info = {"path": path, "methods": [method]}
+        return func
+    return decorator
+
+
 class ZipsaAPI:
 
-    def __init__(self, host: str, port: int, use_cases: UseCases):
+    def __init__(self, use_cases: UseCases):
         self.server = FastAPI()
         self._use_cases = use_cases
-        self._host = host
-        self._port = port
+        self._add_routes()
     
-    @asynccontextmanager
-    async def lifespan(self):
-        yield
+    def _add_routes(self):
+        router = APIRouter()
+        for attr_name in dir(self):
+            attr = getattr(self, attr_name)
+            if callable(attr) and hasattr(attr, "_route_info"):
+                route_info = attr._route_info
+                router.add_api_route(route_info["path"], attr, methods=route_info["methods"])          
+        self.server.include_router(router)
     
-    def serve(self):
-        uvicorn.run(self._server, host=self._host, port=self._port)
+    def serve(self, host: str, port: int,):
+        uvicorn.run(self.server, host=host, port=port)
     
     @property
     def use_cases(self):
         return self._use_cases
-
-
-app = ZipsaAPI()
-api = ZipsaAPI().server
-
-
-@api.post("/login/access-token")
-async def login_access_token(input: LoginInputDto):
-    return app.use_cases.login.execute(input)
-
+    
+    @route("POST", "/login/access-token")
+    async def login_access_token(self, input: LoginInputDto):
+        return self._use_cases.login.execute(input)
+    
+    
